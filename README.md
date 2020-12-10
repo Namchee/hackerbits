@@ -12,6 +12,8 @@ Web crawler dan penerapan clustering sederhana pada website [Hacker News](https:
 4. Jalankan perintah `source <nama_folder>/bin/activate` pada terminal Anda.
 5. Eksekusi berkas yang Anda inginkan dalam _bash_ tersebut.
 
+> **CATATAN**: Setiap kali Anda menambahkan _dependency_ baru, mohon tambahkan pada `requirements.txt` menggunakan perintah `pip freeze > requirements.txt`
+
 ## Kontributor
 
 1. [Stephen Hadi](https://github.com/stephenhadi) — 2017730016
