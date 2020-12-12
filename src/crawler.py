@@ -1,6 +1,7 @@
 from urllib.robotparser import RobotFileParser
 from bs4 import BeautifulSoup
 from math import ceil
+from random import randint, random
 from os import getcwd
 from datetime import datetime
 from time import sleep
@@ -73,7 +74,7 @@ def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
             resp_body.append(resp.text)
             page += 1
 
-            sleep(delay)
+            sleep(randint(delay, delay + 10)) # Simulate 'humans' access time
 
     data_time = datetime.now()
     articles = []
