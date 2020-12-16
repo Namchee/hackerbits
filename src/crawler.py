@@ -6,6 +6,7 @@ from os import getcwd
 from datetime import datetime
 from time import sleep
 from json import dump
+from newsplease import NewsPlease
 import grequests
 import requests
 
@@ -24,20 +25,17 @@ class CrawlingResult:
         with open(f'{dir}/{name}.json', 'w') as file:
             data = {}
 
-            data['timestamp'] = self.time.isoformat()
-            data['articles'] = self.articles
-
             dump(data, file, indent=4, sort_keys=True)
 
 def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
-    """Crawl HackerNews website for fresh tech articles
+    """Crawl HackerNews website for fresh tech article links
 
     Args:
         limit (int, optional): Limits how much articles should be fetched. Defaults to 200.
         polite (bool, optional): Determine if crawling should be done politely according to robots.txt. Defaults to True.
 
     Returns:
-        CrawlingResult: Crawler results, with timestamp
+        urls: Array of urls
     """
     base_url = "https://news.ycombinator.com"
     delay = 0
@@ -76,8 +74,7 @@ def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
 
             sleep(randint(delay, delay + 10)) # Simulate 'humans' access time
 
-    data_time = datetime.now()
-    articles = []
+    urls = []
 
     for body in resp_body:
         body_parser = BeautifulSoup(body, 'html.parser')
@@ -89,12 +86,21 @@ def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
             if not url.startswith('http'):
                 url = f'{base_url}/{url}'
 
-            articles.append({
-                'title': title.get_text(),
-                'url': url
-            })
+            urls.append(url)
 
-    return CrawlingResult(
-        articles=articles,
-        time=data_time
-    )
+    return urls
+
+def extract_hn_news(limit = 200, polite = True):
+    """Crawl HackerNews website for fresh tech articles
+
+    Args:
+        limit (int, optional): Limits how much articles should be fetched. Defaults to 200.
+        polite (bool, optional): Determine if crawling should be done politely according to robots.txt. Defaults to True.
+
+    Returns:
+        CrawlingResult: Crawler results, with timestamp
+    """
+    urls = crawl_hn(limit, polite)
+    articles = NewsPlease.from_urls(urls, timeout=5)
+
+    print(articles)
