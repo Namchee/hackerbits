@@ -108,4 +108,4 @@ def extract_hn_news(limit = 200, polite = True):
     articles = NewsPlease.from_urls(urls)
 
     for article in articles.values():
-        print(dumps(article.authors)
+        print(dumps(article.authors))
