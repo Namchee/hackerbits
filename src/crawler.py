@@ -82,9 +82,6 @@ def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
         titles = body_parser.select('tr.athing .storylink')
 
         for title in titles:
-            if len(urls) == limit:
-                break
-    
             url = title.get('href')
 
             if not url.startswith('http'):
@@ -108,10 +105,7 @@ def extract_hn_news(limit = 200, polite = True):
 
     urls = crawl_hn(limit, polite)
 
-    try:
-        articles = NewsPlease.from_urls(urls)
+    articles = NewsPlease.from_urls(urls)
 
-        for article in articles.values():
-            print(dumps(article.authors))
-    except:
-        print('a')
+    for article in articles.values():
+        print(dumps(article.authors)
