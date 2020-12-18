@@ -1,11 +1,11 @@
 from urllib.robotparser import RobotFileParser
 from bs4 import BeautifulSoup
 from math import ceil
-from random import randint, random
+from random import randint
 from os import getcwd
 from datetime import datetime
 from time import sleep
-from json import dump
+from json import dump, dumps
 from newsplease import NewsPlease
 import grequests
 import requests
@@ -78,15 +78,20 @@ def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
 
     for body in resp_body:
         body_parser = BeautifulSoup(body, 'html.parser')
+
         titles = body_parser.select('tr.athing .storylink')
 
         for title in titles:
+            if len(urls) == limit:
+                break
+    
             url = title.get('href')
 
             if not url.startswith('http'):
                 url = f'{base_url}/{url}'
-
-            urls.append(url)
+            
+            if not url.endswith('.pdf'):
+                urls.append(url)
 
     return urls
 
@@ -100,7 +105,13 @@ def extract_hn_news(limit = 200, polite = True):
     Returns:
         CrawlingResult: Crawler results, with timestamp
     """
-    urls = crawl_hn(limit, polite)
-    articles = NewsPlease.from_urls(urls, timeout=5)
 
-    print(articles)
+    urls = crawl_hn(limit, polite)
+
+    try:
+        articles = NewsPlease.from_urls(urls)
+
+        for article in articles.values():
+            print(dumps(article.authors))
+    except:
+        print('a')
