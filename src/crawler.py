@@ -1,33 +1,39 @@
 from urllib.robotparser import RobotFileParser
+from typing import List
+from datetime import datetime
+from os import getcwd
 from bs4 import BeautifulSoup
 from math import ceil
 from random import randint
-from os import getcwd
-from datetime import datetime
 from time import sleep
-from json import dump, dumps
-from newsplease import NewsPlease
+from json import dump
+from newspaper.article import ArticleException
+from newspaper import Article, Config, news_pool
 import grequests
 import requests
 
+from src.model.news import News
+
 class CrawlingResult:
-    def __init__(self, articles, time: datetime):
-        self.articles = articles
+    def __init__(self, news: List[News], time: datetime) -> None:
+        self.news = news
         self.time = time
 
-    def write_result_to_file(self, dir = getcwd(), name = 'crawling_result'):
+    def write_result_to_file(self, dir = getcwd(), name = 'crawling_result') -> None:
         """Write crawling result to a JSON file
-
         Args:
             dir (str, optional): Directory to be written. Defaults to getcwd().
             name (str, optional): File name. Defaults to 'crawling_result'.
         """
         with open(f'{dir}/{name}.json', 'w') as file:
-            data = {}
+            data = {
+                'fetched_at': self.time.isoformat(),
+                'news': list(map(lambda article: article.toJson(), self.news))
+            }
 
-            dump(data, file, indent=4, sort_keys=True)
+            dump(data, file, indent=4, ensure_ascii=True)
 
-def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
+def _get_news_links(limit: int = 200, polite: bool = True) -> List[str]:
     """Crawl HackerNews website for fresh tech article links
 
     Args:
@@ -92,7 +98,7 @@ def crawl_hn(limit = 200, polite = True) -> CrawlingResult:
 
     return urls
 
-def extract_hn_news(limit = 200, polite = True):
+def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
     """Crawl HackerNews website for fresh tech articles
 
     Args:
@@ -103,9 +109,32 @@ def extract_hn_news(limit = 200, polite = True):
         CrawlingResult: Crawler results, with timestamp
     """
 
-    urls = crawl_hn(limit, polite)
+    urls = _get_news_links(limit, polite)
+    config = Config()
+    config.fetch_images = False # DO NOT fetch the image
 
-    articles = NewsPlease.from_urls(urls)
+    news_list = list(map(lambda url: Article(url=url, config=config), urls))
+    news_pool.set(news_list)
+    news_pool.join()
 
-    for article in articles.values():
-        print(dumps(article.authors))
+    result = []
+
+    for news in news_list:
+        try:
+            news.parse()
+
+            result.append(
+                News(
+                    authors=news.authors,
+                    title=news.title,
+                    published_at=news.publish_date,
+                    contents=news.text
+                )
+            )
+        except ArticleException: # Ignore non articles
+            pass
+
+    return CrawlingResult(
+        news=result,
+        time=datetime.now(),
+    )
