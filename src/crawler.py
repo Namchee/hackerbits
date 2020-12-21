@@ -28,7 +28,7 @@ class CrawlingResult:
         with open(f'{dir}/{name}.json', 'w') as file:
             data = {
                 'fetched_at': self.time.isoformat(),
-                'news': list(map(lambda article: article.toJson(), self.news))
+                'news': list(map(lambda o: o.__dict__, self.news)),
             }
 
             dump(data, file, indent=4, ensure_ascii=True)
