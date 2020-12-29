@@ -1,14 +1,26 @@
-from nltk import tokenize, word_tokenize
+from nltk import word_tokenize
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+from pandas import DataFrame
 from re import search
 from typing import List
 
 from src.model.news import News
 
-def k_means(news: List[News]):
-    return None
+def k_means(news: List[News], clusters: int):
+    tf_idf = _tf_idf(news)
+
+    model = KMeans(n_cluster=clusters)
+
+    model.fit(tf_idf)
+
+    """
+
+    wiki_cl = DataFrame(list(zip(title,labels)),columns=['title','cluster'])
+    print(wiki_cl.sort_values(by=['cluster']))
+    """
 
 def get_clusters_with_elbow():
     return None
@@ -33,3 +45,21 @@ def _tokenize(text: str) -> List[str]:
     tokens = list(filter(lambda token: search("[^a-zA-Z-]+", token) is None, tokens))
 
     return tokens
+
+def _tf_idf(news_list: List[News]):
+    """Generate tf-idf matrix from list of news
+
+    Args:
+        news_list (List[News]): List of news
+
+    Returns:
+        csr_matrix: tf-idf matrix
+    """
+    vectorizer = TfidfVectorizer(
+        tokenizer=_tokenize,
+        sublinear_tf=True,
+    )
+
+    texts = list(map(lambda news: news.content, news_list))
+
+    return vectorizer.fit_transform(texts)
