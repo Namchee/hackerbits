@@ -10,7 +10,8 @@ Web crawler dan penerapan clustering sederhana pada website [Hacker News](https:
 2. Buat sebuah [_virtual environment_](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/) dengan mengeksekusi perintah `virtualenv <nama_folder>` pada terminal Anda.
 3. Jalankan perintah `pip install -r requirements.txt` pada terminal Anda.
 4. Jalankan perintah `source <nama_folder>/bin/activate` pada terminal Anda.
-5. Eksekusi berkas yang Anda inginkan dalam _bash_ tersebut.
+5. Sebelum memulai proses pengembangan, eksekusi `main.py` dengan argumen `init` untuk mengunduh _dependency-dependency_ yang dibutuhkan. Contoh: `py main.py init`
+6. Anda dapat memulai proses pengembangan dengan mengeksekusi `py main.py cluster`
 
 > **CATATAN**: Setiap kali Anda menambahkan _dependency_ baru, mohon tambahkan pada `requirements.txt` menggunakan perintah `pip freeze > requirements.txt`
 

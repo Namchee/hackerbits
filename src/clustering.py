@@ -12,10 +12,15 @@ from src.model.news import News
 def k_means(news: List[News], clusters: int):
     tf_idf = _tf_idf(news)
 
-    model = KMeans(n_cluster=clusters)
+    km = KMeans(n_cluster=clusters)
 
-    model.fit(tf_idf)
+    km.fit(tf_idf)
 
+    results = DataFrame()
+    results['news'] = list(map(lambda x: x.title, news))
+    results['category'] = km.labels_
+
+    results
     """
 
     wiki_cl = DataFrame(list(zip(title,labels)),columns=['title','cluster'])
@@ -60,6 +65,6 @@ def _tf_idf(news_list: List[News]):
         sublinear_tf=True,
     )
 
-    texts = list(map(lambda news: news.content, news_list))
+    texts = list(map(lambda news: news.contents, news_list))
 
     return vectorizer.fit_transform(texts)
