@@ -9,27 +9,6 @@ from typing import List
 
 from src.model.news import News
 
-def k_means(news: List[News], clusters: int):
-    tf_idf = _tf_idf(news)
-
-    km = KMeans(n_cluster=clusters)
-
-    km.fit(tf_idf)
-
-    results = DataFrame()
-    results['news'] = list(map(lambda x: x.title, news))
-    results['category'] = km.labels_
-
-    results
-    """
-
-    wiki_cl = DataFrame(list(zip(title,labels)),columns=['title','cluster'])
-    print(wiki_cl.sort_values(by=['cluster']))
-    """
-
-def get_clusters_with_elbow():
-    return None
-
 def _tokenize(text: str) -> List[str]:
     """Generate tokens from a long text
 
@@ -45,7 +24,7 @@ def _tokenize(text: str) -> List[str]:
     stemmer = PorterStemmer()
     tokens = [stemmer.stem(token) for token in tokens]
 
-    tokens = list(filter(lambda token: token not in stopwords.words('english', tokens)))
+    tokens = list(filter(lambda token: token not in stopwords.words('english'), tokens))
     
     tokens = list(filter(lambda token: search("[^a-zA-Z-]+", token) is None, tokens))
 
@@ -68,3 +47,31 @@ def _tf_idf(news_list: List[News]):
     texts = list(map(lambda news: news.contents, news_list))
 
     return vectorizer.fit_transform(texts)
+
+def _elbow_method() -> int:
+    """Get optimum number of cluster using elbow method
+
+    Returns:
+        int: Optimum number of cluster
+    """
+    # TODO: Isi!
+    return 8
+
+def k_means(news: List[News], clusters = _elbow_method()) -> None:
+    """Cluster HackerNews' articles using K-Means
+
+    Args:
+        news (List[News]): List of HN's articles
+        clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
+    """
+    tf_idf = _tf_idf(news)
+
+    km = KMeans(n_clusters=clusters)
+
+    km.fit(tf_idf)
+
+    results = DataFrame()
+    results['news'] = list(map(lambda x: x.title, news))
+    results['category'] = km.labels_
+
+    print(results)
