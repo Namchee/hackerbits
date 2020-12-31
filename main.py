@@ -31,5 +31,5 @@ def cluster():
     
     clustering.k_means(result.news)
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     main()

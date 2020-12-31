@@ -1,3 +1,5 @@
+import grequests
+import requests
 from urllib.robotparser import RobotFileParser
 from typing import List
 from datetime import datetime
@@ -9,8 +11,6 @@ from time import sleep
 from json import dump
 from newspaper.article import ArticleException
 from newspaper import Article, Config, news_pool
-import grequests
-import requests
 
 from src.model.news import News
 
@@ -111,6 +111,7 @@ def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
 
     urls = _get_news_links(limit, polite)
     config = Config()
+    config.browser_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     config.fetch_images = False # DO NOT fetch the image
 
     news_list = list(map(lambda url: Article(url=url, config=config), urls))
@@ -121,6 +122,7 @@ def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
 
     for news in news_list:
         try:
+            news.download_state
             news.parse()
 
             result.append(
