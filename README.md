@@ -1,6 +1,6 @@
-# hn-crawl
+# hackerbits
 
-Web crawler dan penerapan clustering sederhana pada website [Hacker News](https://news.ycombinator.com/). Dibuat sebagai pemenuhan tugas besar Teknologi Mesin Pencari.
+_Web crawler_ dan implementasi beberapa algoritma clustering sederhana pada website [Hacker News](https://news.ycombinator.com/). Dibuat sebagai pemenuhan tugas besar Teknologi Mesin Pencari.
 
 ## Instalasi
 
