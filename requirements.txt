@@ -51,6 +51,7 @@ newspaper3k==0.2.8
 nltk==3.5
 numpy==1.19.4
 packaging==20.3
+pandas==1.2.0
 parsel==1.6.0
 pep517==0.8.2
 Pillow==8.0.1
@@ -68,6 +69,7 @@ pyOpenSSL==20.0.1
 pyparsing==2.4.6
 python-dateutil==2.8.1
 pytoml==0.1.21
+pytz==2020.5
 PyYAML==5.3.1
 queuelib==1.5.0
 readability-lxml==0.8.1
@@ -79,7 +81,6 @@ rsa==4.5
 s3transfer==0.3.3
 scikit-learn==0.24.0
 scipy==1.5.4
-Scrapy==2.4.1
 service-identity==18.1.0
 sgmllib3k==1.0.0
 six==1.14.0
@@ -87,11 +88,10 @@ soupsieve==2.1
 threadpoolctl==2.1.0
 tinysegmenter==0.3
 tldextract==3.1.0
+toml==0.10.2
 tqdm==4.54.1
-Twisted==20.3.0
 urllib3==1.25.8
 w3lib==1.22.0
-warcio==1.7.4
 webencodings==0.5.1
 zope.event==4.5.0
 zope.interface==5.2.0
