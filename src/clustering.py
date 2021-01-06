@@ -49,14 +49,6 @@ def _tf_idf(news_list: List[News]):
 
     return vectorizer.fit_transform(texts)
 
-def _elbow_method() -> int:
-    """Get optimum number of cluster using elbow method
-
-    Returns:
-        int: Optimum number of cluster
-    """
-    # TODO: Isi!
-
 def _silhouette_method(news) -> int:
     """Get optimum number of cluster using silhoutte method
 
@@ -71,8 +63,7 @@ def _silhouette_method(news) -> int:
         silhoutte_metric_score.append(silhouette_score(news, labels))
 
     max_index = silhoutte_metric_score.index(max(silhoutte_metric_score))
-    print(silhoutte_metric_score)
-    return max_index+2
+    return max_index + 2
 
 
 
@@ -84,8 +75,10 @@ def k_means(news: List[News], clusters = None) -> None:
         clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
     """
     tf_idf = _tf_idf(news)
+
     if clusters is None:
         clusters = _silhouette_method(tf_idf)
+        print(clusters)
 
     km = KMeans(n_clusters=clusters)
 
