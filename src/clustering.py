@@ -3,6 +3,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 from pandas import DataFrame
 from re import search
 from typing import List
@@ -55,9 +56,27 @@ def _elbow_method() -> int:
         int: Optimum number of cluster
     """
     # TODO: Isi!
-    return 8
 
-def k_means(news: List[News], clusters = _elbow_method()) -> None:
+def _silhouette_method(news) -> int:
+    """Get optimum number of cluster using silhoutte method
+
+    Returns:
+        int: Optimum number of cluster
+    """
+    K = range(2,15)
+    silhoutte_metric_score = []
+    for k in K:
+        kmeans = KMeans(n_clusters=k).fit(news)
+        labels = kmeans.labels_
+        silhoutte_metric_score.append(silhouette_score(news, labels))
+
+    max_index = silhoutte_metric_score.index(max(silhoutte_metric_score))
+    print(silhoutte_metric_score)
+    return max_index+2
+
+
+
+def k_means(news: List[News], clusters = None) -> None:
     """Cluster HackerNews' articles using K-Means
 
     Args:
@@ -65,6 +84,8 @@ def k_means(news: List[News], clusters = _elbow_method()) -> None:
         clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
     """
     tf_idf = _tf_idf(news)
+    if clusters is None:
+        clusters = _silhouette_method(tf_idf)
 
     km = KMeans(n_clusters=clusters)
 

@@ -28,7 +28,7 @@ def init():
 
 def cluster():
     result = crawler.crawl_hn_for_news(limit=90, polite=False)
-    
+
     clustering.k_means(result.news)
 
 if __name__ == "__main__":    
