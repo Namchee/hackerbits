@@ -1,4 +1,5 @@
-from typing import Any
+from enum import Enum
+from typing import Any, Tuple
 from nltk import word_tokenize
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
@@ -11,125 +12,124 @@ from typing import List
 
 from src.model.news import News
 
-def _tokenize(text: str) -> List[str]:
-    """Generate tokens from a long text
-
-    Args:
-        text (str): Text to be processed.
-
-    Returns:
-        List[str]: List of tokens
+class EvaluationMethod(Enum):
+    """List of allowed clustering evaluation methods
     """
-    tokens = word_tokenize(text)
-    tokens = [token.lower() for token in tokens]
+    SILHOUETTE = 1
+    CALINSKI_HARABASZ = 2
+    DAVIES_BOULDIN = 3
 
-    stemmer = PorterStemmer()
-    tokens = [stemmer.stem(token) for token in tokens]
+class NewsClusterer:
+    """Clusterer for HackerNews' news articles
+    """
+    def __init__(self, news: List[News]) -> None:
+        self.tf_idf = self._tf_idf(news)
 
-    tokens = list(filter(lambda token: token not in stopwords.words('english'), tokens))
+    def _tokenize(_, text: str) -> List[str]:
+        """Generate tokens from a long text
+
+        Args:
+            text (str): Text to be processed.
+
+        Returns:
+            List[str]: List of tokens
+        """
+        tokens = word_tokenize(text)
+        tokens = [token.lower() for token in tokens]
+
+        stemmer = PorterStemmer()
+        tokens = [stemmer.stem(token) for token in tokens]
+
+        tokens = list(filter(lambda token: token not in stopwords.words('english'), tokens))
     
-    tokens = list(filter(lambda token: search("[^a-zA-Z-]+", token) is None, tokens))
+        tokens = list(filter(lambda token: search("[^a-zA-Z-]+", token) is None, tokens))
 
-    return tokens
+        return tokens
 
-def _tf_idf(news_list: List[News]) -> csr_matrix:
-    """Generate tf-idf matrix from list of news
+    def _tf_idf(self, news: List[News]) -> csr_matrix:
+        """Generate tf-idf matrix from list of news
 
-    Args:
-        news_list (List[News]): List of news
+        Args:
+            news_list (List[News]): List of news
 
-    Returns:
-        csr_matrix: tf-idf matrix
-    """
-    vectorizer = TfidfVectorizer(
-        tokenizer=_tokenize,
-        sublinear_tf=True,
-    )
+        Returns:
+            csr_matrix: tf-idf matrix
+        """
+        vectorizer = TfidfVectorizer(
+            tokenizer=self._tokenize,
+            sublinear_tf=True,
+        )
 
-    texts = list(map(lambda news: news.contents, news_list))
+        texts = list(map(lambda news: news.contents, news))
 
-    return vectorizer.fit_transform(texts)
+        return vectorizer.fit_transform(texts)    
 
-def _silhouette_method(news: csr_matrix) -> int:
-    """Get optimum number of cluster using silhoutte method
+    def _get_optimal_cluster_count(self) -> int:
+        """Get optimum number of cluster using silhoutte method
 
-    Returns:
-        int: Optimum number of cluster
-    """
-    K = range(2,15)
-    silhoutte_metric_score = []
+        Returns:
+            int: Optimum number of cluster
+        """
+        K = range(2,15)
+        silhoutte_metric_score = []
 
-    for k in K:
-        kmeans = KMeans(n_clusters=k).fit(news)
-        labels = kmeans.labels_
-        silhoutte_metric_score.append(silhouette_score(news, labels, metric='euclidean'))
+        for k in K:
+            kmeans = KMeans(n_clusters=k).fit(self.tf_idf)
+            labels = kmeans.labels_
+            silhoutte_metric_score.append(silhouette_score(self.tf_idf, labels, metric='euclidean'))
 
-    max_index = silhoutte_metric_score.index(max(silhoutte_metric_score))
+        max_index = silhoutte_metric_score.index(max(silhoutte_metric_score))
 
-    return max_index + 2
+        return max_index + 2    
 
-def silhouette_coefficient(news: List[News], labels: Any) -> float:
-    """Calculate silhouette coefficient based on the supplied results
+    def k_means(self, cluster_count = None) -> Tuple[Any, int]:
+        """Cluster HackerNews' articles using K-Means
 
-    Args:
-        news (List[News]): List of HN's articles
-        labels (Any): Label for each news
+        Args:
+            news (List[News]): List of HN's articles
+            clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
 
-    Returns:
-        float: silhouette score, the closer the result to 1, the better
-    """
+        Returns:
+            Tuple(Any, int): Labels for each news item and how much clusters is used
+        """
+        if cluster_count is None:
+            cluster_count = self._get_optimal_cluster_count()
 
-    tf_idf = _tf_idf(news)
+        model = KMeans(n_clusters=cluster_count)
 
-    return silhouette_score(tf_idf, labels, metric='euclidean')
+        model.fit(self.tf_idf)
 
-def calinski_harabasz_coefficient(news: List[News], labels: Any) -> float:
-    """Calculate Calinski Harabasz index based on the supplied results
+        return (model.labels_, cluster_count)
 
-    Args:
-        news (List[News]): List of HN's articles
-        labels (Any): Label for each news
+    def evaluate_result(self, labels: Any, method: EvaluationMethod) -> float:
+        """Evaluate clustering result with an internal criteria
 
-    Returns:
-        float: Calinski Harabasz index, the higher the results, the better
-    """
+        Args:
+            labels (Any): Labels for each news item
+            method (EvaluationMethod): Evaluation method to be used. May be:
+                1. Silhouette Coefficient
+                2. Calinski-Harabasz Coefficient
+                3. Davies Boulding Coefficient
 
-    tf_idf = _tf_idf(news)
+            Although normally, you might want to use just Silhouette
+            Please refer to the SKLearn documentation for more information
+        Returns:
+            float: Score for clustering result.
+                For Silhouette and Calinski Harabasz, the higher the score, the better.
+                For Davies Bouldin score, the lower the better.
+                Will return `-1` if the evaluation method doesn't exist.
+        """
+        switcher = {
+            1: silhouette_score,
+            2: calinski_harabasz_score,
+            3: davies_bouldin_score,
+        }
 
-    return calinski_harabasz_score(tf_idf, labels)
+        func = switcher.get(method.value)
 
-def davies_bouldin_coefficient(news: List[News], labels: Any) -> float:
-    """Calculate Davies Bouldin index based on the supplied results
-
-    Args:
-        news (List[News]): List of HN's articles
-        labels (Any): Label for each news
-
-    Returns:
-        float: Davies Bouldin score, the higher the results, the better
-    """
-
-    tf_idf = _tf_idf(news)
-
-    return davies_bouldin_score(tf_idf, labels)
-
-def k_means(news: List[News], clusters = None) -> Any:
-    """Cluster HackerNews' articles using K-Means
-
-    Args:
-        news (List[News]): List of HN's articles
-        clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
-
-    Returns:
-        Label for each news
-    """
-    tf_idf = _tf_idf(news)
-
-    if clusters is None:
-        clusters = _silhouette_method(tf_idf)
-
-    km = KMeans(n_clusters=clusters)
-
-    km.fit(tf_idf)
-
-    return km.labels_
+        if func is None:
+            return -1
+        elif method.value == 1:
+            return func(self.tf_idf, labels, metric='euclidean')
+        else:
+            return func(self.tf_idf.toarray(), labels)
