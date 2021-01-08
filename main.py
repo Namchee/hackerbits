@@ -30,7 +30,7 @@ def cluster() -> None:
     result = crawler.crawl_hn_for_news(limit=90, polite=True)
 
     clusterer = clustering.NewsClusterer(result.news)
-    (labels, _) = clusterer.k_means()
+    (labels, _) = clusterer.flat_clustering()
     
     print(clusterer.evaluate_result(labels, clustering.EvaluationMethod.CALINSKI_HARABASZ))
 

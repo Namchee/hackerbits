@@ -19,6 +19,14 @@ class EvaluationMethod(Enum):
     CALINSKI_HARABASZ = 2
     DAVIES_BOULDIN = 3
 
+class Linkage(Enum):
+    """List of allowed linkage for agglomerative clustering
+    """
+    WARD = 1
+    COMPLETE = 2
+    AVERAGE = 3
+    SINGLE = 4
+
 class NewsClusterer:
     """Clusterer for HackerNews' news articles
     """
@@ -82,12 +90,12 @@ class NewsClusterer:
 
         return max_index + 2    
 
-    def k_means(self, cluster_count = None) -> Tuple[Any, int]:
-        """Cluster HackerNews' articles using K-Means
+    def flat_clustering(self, cluster_count = None) -> Tuple[Any, int]:
+        """Cluster HackerNews' articles using K-Means, a flat clustering method
 
         Args:
             news (List[News]): List of HN's articles
-            clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
+            clusters (int, optional): Number of desired cluster. Defaults to _get_optimal_cluster_count().
 
         Returns:
             Tuple(Any, int): Labels for each news item and how much clusters is used
@@ -100,6 +108,19 @@ class NewsClusterer:
         model.fit(self.tf_idf)
 
         return (model.labels_, cluster_count)
+
+    def agglomerative_clustering(self, cluster_count = None, linkage: Linkage = Linkage.SINGLE) -> Tuple[Any, int]:
+        """Cluster HackerNews' articles using agglomerative hierarchical clustering
+
+        Args:
+            news (List[News]): List of HN's articles
+            clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
+
+        Returns:
+            Tuple(Any, int): Labels for each news item and how much clusters is used
+        """
+        if cluster_count is None:
+            cluster_count = self._get_optimal_cluster_count()
 
     def evaluate_result(self, labels: Any, method: EvaluationMethod) -> float:
         """Evaluate clustering result with an internal criteria
