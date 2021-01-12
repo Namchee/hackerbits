@@ -1,0 +1,29 @@
+{
+  "name": "slides",
+  "version": "1.0.0",
+  "description": "Slide presentasi tugas Teknologi Mesin Pencari",
+  "main": "",
+  "scripts": {
+    "dev": "mdx-deck slides.mdx"
+  },
+  "keywords": [],
+  "contributors": [
+    {
+      "name": "Stephen Hadi",
+      "email": "2017730016@student.unpar.ac.id"
+    },
+    {
+      "name": "Cristopher",
+      "email": "2017730017@student.unpar.ac.id"
+    },
+    {
+      "name": "Nicholas Aditya Halim",
+      "email": "2017730018@student.unpar.ac.id"
+    }
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@mdx-deck/themes": "^4.1.0",
+    "mdx-deck": "^4.1.1"
+  }
+}
