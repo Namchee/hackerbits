@@ -122,7 +122,6 @@ def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
 
     for news in news_list:
         try:
-            news.download_state
             news.parse()
 
             result.append(
