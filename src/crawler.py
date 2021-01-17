@@ -1,7 +1,7 @@
 import grequests
 import requests
 from urllib.robotparser import RobotFileParser
-from typing import List
+from typing import List, Tuple
 from datetime import datetime
 from os import getcwd
 from bs4 import BeautifulSoup
@@ -33,83 +33,41 @@ class CrawlingResult:
 
             dump(data, file, indent=4, ensure_ascii=True)
 
-def _get_news_links(limit: int = 200, polite: bool = True) -> List[str]:
-    """Crawl HackerNews website for fresh tech article links
+def _parse_response_body(resp_body: str) -> List[str]:
+    """Extract news URLs from HackerNews body page
 
     Args:
-        limit (int, optional): Limits how much articles should be fetched. Defaults to 200.
-        polite (bool, optional): Determine if crawling should be done politely according to robots.txt. Defaults to True.
+        resp_body (str): [description]
 
     Returns:
-        urls: Array of urls
+        List[str]: [description]
     """
     base_url = "https://news.ycombinator.com"
-    delay = 0
-    pages = ceil(limit / 30)
-
-    if polite:
-        rp = RobotFileParser(url=f'{base_url}/robots.txt')
-        rp.read()
-        crawl_delay = rp.crawl_delay('*')
-
-        if crawl_delay is None:
-            crawl_delay = 0
-        
-        delay = int(crawl_delay)
-
-    resp_body = []
-    page = 1
-
-    if delay == 0:
-        urls = []
-
-        while page <= pages:
-            urls.append(f'{base_url}/news?p={page}')
-            page += 1
-
-        req = (grequests.get(url) for url in urls)
-        
-        for resp in grequests.imap(req):
-            resp_body.append(resp.text)
-    else:
-        while page <= pages:
-            resp = requests.get(f'{base_url}/news?p={page}')
-            
-            resp_body.append(resp.text)
-            page += 1
-
-            sleep(randint(delay, delay + 10)) # Simulate 'humans' access time
-
     urls = []
 
-    for body in resp_body:
-        body_parser = BeautifulSoup(body, 'html.parser')
+    body_parser = BeautifulSoup(resp_body, 'html.parser')
+    titles = body_parser.select('.storylink')
 
-        titles = body_parser.select('tr.athing .storylink')
+    for news_title in titles:
+        url = news_title.get('href')
 
-        for title in titles:
-            url = title.get('href')
-
-            if not url.startswith('http'):
-                url = f'{base_url}/{url}'
+        if not url.startswith('http'):
+            url = f'{base_url}/{url}'
             
-            if not url.endswith('.pdf'):
-                urls.append(url)
+        if not url.endswith('.pdf'):
+            urls.append(url)
 
     return urls
 
-def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
-    """Crawl HackerNews website for fresh tech articles
+def _get_news_metadata(urls: List[str]) -> List[News]:
+    """Get news' metadata from URL
 
     Args:
-        limit (int, optional): Limits how much articles should be fetched. Defaults to 200.
-        polite (bool, optional): Determine if crawling should be done politely according to robots.txt. Defaults to True.
+        urls (List[str]): List of news URL
 
     Returns:
-        CrawlingResult: Crawler results, with timestamp
+        List[News]: List of parsed article contents
     """
-
-    urls = _get_news_links(limit, polite)
     config = Config()
     config.browser_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     config.fetch_images = False # DO NOT fetch the image
@@ -135,7 +93,109 @@ def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
         except ArticleException: # Ignore non articles
             pass
 
+    return result
+
+def _fetch_news_sync(limit: int, page: int = 1) -> Tuple[List[str], int]:
+    """Crawl HackerNews website for fresh tech article links SYNCHRONOUSLY
+
+    Args:
+        limit (int): Limits how much articles should be fetched.
+        page (int, optional): Determine the starting page.
+
+    Returns:
+        Tuple(List[str], int): List of URLs and next page number to be fetched
+    """
+    base_url = "https://news.ycombinator.com"
+    delay = 0
+    pages = ceil(limit / 30)
+
+    rp = RobotFileParser(url=f'{base_url}/robots.txt')
+    rp.read()
+    crawl_delay = rp.crawl_delay('*')
+
+    if crawl_delay is not None:
+        delay = int(crawl_delay)
+
+    resp_body = []
+    count = 0
+
+    while count < pages:
+        resp = requests.get(f'{base_url}/news?p={page}')
+            
+        resp_body.append(resp.text)
+        count += 1
+        page += 1
+
+        if pages - count > 1:
+            sleep(randint(delay, delay + 10)) # Simulate 'humans' access time
+
+    urls = []
+
+    for body in resp_body:
+        urls.extend(_parse_response_body(body))
+
+    return (urls, page)
+
+def _fetch_news_async(limit: int, page: int = 1) -> Tuple[List[str], int]:
+    """Crawl HackerNews website for fresh tech article links with paralel
+    requests. Faster, but not polite at all
+
+    Args:
+        limit (int): Limits how much articles should be fetched.
+        page (int, optional): Determine the starting page.
+
+    Returns:
+        Tuple(List[str], int): List of URLs and next page number to be fetched
+    """
+    base_url = "https://news.ycombinator.com"
+    pages = ceil(limit / 30)
+
+    resp_body = []
+    reqs = []
+    count = 0
+
+    while count < pages:
+        reqs.append(f'{base_url}/news?p={page}')
+        count += 1
+        page += 1
+
+    req = (grequests.get(url) for url in reqs)
+        
+    for resp in grequests.imap(req):
+        resp_body.append(resp.text)
+
+    urls = []
+
+    for body in resp_body:
+        urls.extend(_parse_response_body(body))
+
+    return (urls, page)
+
+def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
+    """Crawl HackerNews website for fresh tech articles
+
+    Args:
+        limit (int, optional): Limits how much articles should be fetched. Defaults to 200.
+        polite (bool, optional): Determine if crawling should be done politely according to robots.txt. Defaults to True.
+
+    Returns:
+        CrawlingResult: Crawler results, with timestamp
+    """
+
+    urls = None
+
+    if polite:
+        urls = _fetch_news_sync(limit)
+    else:
+        urls = _fetch_news_async(limit)
+
+    news = _get_news_metadata(urls[0])
+
+    if len(news) < limit:
+        last_page = _fetch_news_sync(30, urls[1])
+        news.extend(_get_news_metadata(last_page[0]))
+
     return CrawlingResult(
-        news=result,
+        news=news[0:limit],
         time=datetime.now(),
     )
