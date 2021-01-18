@@ -131,3 +131,4 @@ dmypy.json
 .vscode
 crawling_result.json
 slides/node_modules
+wc

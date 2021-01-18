@@ -183,7 +183,6 @@ class NewsClusterer:
         """
         result={'cluster':labels,'tx':self.texts}
         result=pd.DataFrame(result)
-        print("Total cluster = "+str(c_count))
         for k in range(0,c_count):
             s=result[result.cluster==k]
             text=s['tx'].str.cat(sep=' ')
@@ -194,5 +193,6 @@ class NewsClusterer:
             plt.imshow(wordcloud, interpolation="bilinear")
             plt.axis("off")
             plt.savefig('wc/'+add_str+'-cluster'+str(k)+'.png'.format(folder))
+            print("Generated "+'wc/'+add_str+'-cluster'+str(k)+'.png')
             plt.close(fig)
             
