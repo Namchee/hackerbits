@@ -5,7 +5,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from scipy.sparse.csr import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 from re import search
 from typing import List
@@ -22,10 +22,10 @@ class EvaluationMethod(Enum):
 class Linkage(Enum):
     """List of allowed linkage for agglomerative clustering
     """
-    WARD = 1
-    COMPLETE = 2
-    AVERAGE = 3
-    SINGLE = 4
+    WARD = 'ward'
+    COMPLETE = 'complete'
+    AVERAGE = 'average'
+    SINGLE = 'single'
 
 class NewsClusterer:
     """Clusterer for HackerNews' news articles
@@ -72,7 +72,7 @@ class NewsClusterer:
 
         return vectorizer.fit_transform(texts)    
 
-    def _get_optimal_cluster_count(self) -> int:
+    def _get_optimal_cluster_count(self,linkage=None) -> int:
         """Get optimum number of cluster using silhoutte method
 
         Returns:
@@ -80,11 +80,16 @@ class NewsClusterer:
         """
         K = range(2,15)
         silhoutte_metric_score = []
-
-        for k in K:
-            kmeans = KMeans(n_clusters=k).fit(self.tf_idf)
-            labels = kmeans.labels_
-            silhoutte_metric_score.append(silhouette_score(self.tf_idf, labels, metric='euclidean'))
+        if linkage is None:
+            for k in K:
+                cluster = KMeans(n_clusters=k).fit(self.tf_idf)
+                labels = cluster.labels_
+                silhoutte_metric_score.append(silhouette_score(self.tf_idf, labels, metric='euclidean'))
+        else:
+            for k in K:
+                cluster = AgglomerativeClustering(n_clusters=k,linkage=linkage).fit(self.tf_idf.toarray())
+                labels = cluster.labels_
+                silhoutte_metric_score.append(silhouette_score(self.tf_idf, labels, metric='euclidean'))
 
         max_index = silhoutte_metric_score.index(max(silhoutte_metric_score))
 
@@ -120,7 +125,12 @@ class NewsClusterer:
             Tuple(Any, int): Labels for each news item and how much clusters is used
         """
         if cluster_count is None:
-            cluster_count = self._get_optimal_cluster_count()
+            cluster_count = self._get_optimal_cluster_count(linkage=linkage.value)
+        model = AgglomerativeClustering(n_clusters=cluster_count,linkage=linkage.value)
+        model.fit(self.tf_idf.toarray())
+
+        return (model.labels_, cluster_count)
+
 
     def evaluate_result(self, labels: Any, method: EvaluationMethod) -> float:
         """Evaluate clustering result with an internal criteria

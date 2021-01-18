@@ -31,8 +31,10 @@ def cluster() -> None:
 
     clusterer = clustering.NewsClusterer(result.news)
     (labels, _) = clusterer.flat_clustering()
-    
+    (hierLabels, _) = clusterer.agglomerative_clustering()
+
     print(clusterer.evaluate_result(labels, clustering.EvaluationMethod.CALINSKI_HARABASZ))
+    print(clusterer.evaluate_result(hierLabels,clustering.EvaluationMethod.CALINSKI_HARABASZ))
 
 if __name__ == "__main__":    
     main()
