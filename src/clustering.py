@@ -31,6 +31,9 @@ class NewsClusterer:
     """Clusterer for HackerNews' news articles
     """
     def __init__(self, news: List[News]) -> None:
+        if len(news) < 15:
+            raise ValueError('Jumlah berita minimum yang dapat diproses adalah sebanyak 15 berita')
+
         self.tf_idf = self._tf_idf(news)
 
     def _tokenize(_, text: str) -> List[str]:
