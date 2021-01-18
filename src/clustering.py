@@ -5,7 +5,7 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from scipy.sparse.csr import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 from re import search
 from typing import List
@@ -19,10 +19,21 @@ class EvaluationMethod(Enum):
     CALINSKI_HARABASZ = 2
     DAVIES_BOULDIN = 3
 
+class Linkage(Enum):
+    """List of allowed linkage for agglomerative clustering
+    """
+    WARD = 'ward'
+    COMPLETE = 'complete'
+    AVERAGE = 'average'
+    SINGLE = 'single'
+
 class NewsClusterer:
     """Clusterer for HackerNews' news articles
     """
     def __init__(self, news: List[News]) -> None:
+        if len(news) < 15:
+            raise ValueError('Jumlah berita minimum yang dapat diproses adalah sebanyak 15 berita')
+
         self.tf_idf = self._tf_idf(news)
 
     def _tokenize(_, text: str) -> List[str]:
@@ -64,7 +75,7 @@ class NewsClusterer:
 
         return vectorizer.fit_transform(texts)    
 
-    def _get_optimal_cluster_count(self) -> int:
+    def _get_optimal_cluster_count(self,linkage=None) -> int:
         """Get optimum number of cluster using silhoutte method
 
         Returns:
@@ -72,22 +83,27 @@ class NewsClusterer:
         """
         K = range(2,15)
         silhoutte_metric_score = []
-
-        for k in K:
-            kmeans = KMeans(n_clusters=k).fit(self.tf_idf)
-            labels = kmeans.labels_
-            silhoutte_metric_score.append(silhouette_score(self.tf_idf, labels, metric='euclidean'))
+        if linkage is None:
+            for k in K:
+                cluster = KMeans(n_clusters=k).fit(self.tf_idf)
+                labels = cluster.labels_
+                silhoutte_metric_score.append(silhouette_score(self.tf_idf, labels, metric='euclidean'))
+        else:
+            for k in K:
+                cluster = AgglomerativeClustering(n_clusters=k,linkage=linkage).fit(self.tf_idf.toarray())
+                labels = cluster.labels_
+                silhoutte_metric_score.append(silhouette_score(self.tf_idf, labels, metric='euclidean'))
 
         max_index = silhoutte_metric_score.index(max(silhoutte_metric_score))
 
         return max_index + 2    
 
-    def k_means(self, cluster_count = None) -> Tuple[Any, int]:
-        """Cluster HackerNews' articles using K-Means
+    def flat_clustering(self, cluster_count = None) -> Tuple[Any, int]:
+        """Cluster HackerNews' articles using K-Means, a flat clustering method
 
         Args:
             news (List[News]): List of HN's articles
-            clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
+            clusters (int, optional): Number of desired cluster. Defaults to _get_optimal_cluster_count().
 
         Returns:
             Tuple(Any, int): Labels for each news item and how much clusters is used
@@ -100,6 +116,24 @@ class NewsClusterer:
         model.fit(self.tf_idf)
 
         return (model.labels_, cluster_count)
+
+    def agglomerative_clustering(self, cluster_count = None, linkage: Linkage = Linkage.SINGLE) -> Tuple[Any, int]:
+        """Cluster HackerNews' articles using agglomerative hierarchical clustering
+
+        Args:
+            news (List[News]): List of HN's articles
+            clusters (int, optional): Number of desired cluster. Defaults to _elbow_method().
+
+        Returns:
+            Tuple(Any, int): Labels for each news item and how much clusters is used
+        """
+        if cluster_count is None:
+            cluster_count = self._get_optimal_cluster_count(linkage=linkage.value)
+        model = AgglomerativeClustering(n_clusters=cluster_count,linkage=linkage.value)
+        model.fit(self.tf_idf.toarray())
+
+        return (model.labels_, cluster_count)
+
 
     def evaluate_result(self, labels: Any, method: EvaluationMethod) -> float:
         """Evaluate clustering result with an internal criteria
