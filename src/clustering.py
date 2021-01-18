@@ -172,11 +172,19 @@ class NewsClusterer:
             return func(self.tf_idf.toarray(), labels)
 
 
-    def generate_wordcloud(self, labels: Any, fc_count: int, add_str: str, folder: str):
+    def generate_wordcloud(self, labels: Any, c_count: int, add_str: str, folder: str):
+        """Generate word cloud for each cluster
+
+        Args:
+            labels (Any): Labels for each news item
+            c_count (int): Number of clusters
+            add_str (str): Additional string to differentiate file names
+            folder (str): Target folder to generate word cloud picture files
+        """
         result={'cluster':labels,'tx':self.texts}
         result=pd.DataFrame(result)
-        print("Total cluster = "+str(fc_count))
-        for k in range(0,fc_count):
+        print("Total cluster = "+str(c_count))
+        for k in range(0,c_count):
             s=result[result.cluster==k]
             text=s['tx'].str.cat(sep=' ')
             text=text.lower()
