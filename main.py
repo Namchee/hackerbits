@@ -30,11 +30,13 @@ def cluster() -> None:
     result = crawler.crawl_hn_for_news(limit=50, polite=False)
 
     clusterer = clustering.NewsClusterer(result.news)
-    (labels, _) = clusterer.flat_clustering()
-    (hierLabels, _) = clusterer.agglomerative_clustering()
+    (labels, fc_count) = clusterer.flat_clustering()
+    (hierLabels, ac_count) = clusterer.agglomerative_clustering()
 
     print(clusterer.evaluate_result(labels, clustering.EvaluationMethod.CALINSKI_HARABASZ))
     print(clusterer.evaluate_result(hierLabels,clustering.EvaluationMethod.CALINSKI_HARABASZ))
+    clusterer.generate_wordcloud(labels,fc_count,'fc','wc')
+    clusterer.generate_wordcloud(hierLabels,ac_count,'ac','wc')
 
 
 if __name__ == "__main__":    

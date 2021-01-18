@@ -9,6 +9,9 @@ from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 from re import search
 from typing import List
+import pandas as pd
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 from src.model.news import News
 
@@ -72,7 +75,7 @@ class NewsClusterer:
         )
 
         texts = list(map(lambda news: news.contents, news))
-
+        self.texts = texts
         return vectorizer.fit_transform(texts)    
 
     def _get_optimal_cluster_count(self,linkage=None) -> int:
@@ -167,3 +170,21 @@ class NewsClusterer:
             return func(self.tf_idf, labels, metric='euclidean')
         else:
             return func(self.tf_idf.toarray(), labels)
+
+
+    def generate_wordcloud(self, labels: Any, fc_count: int, add_str: str, folder: str):
+        result={'cluster':labels,'tx':self.texts}
+        result=pd.DataFrame(result)
+        print("Total cluster = "+str(fc_count))
+        for k in range(0,fc_count):
+            s=result[result.cluster==k]
+            text=s['tx'].str.cat(sep=' ')
+            text=text.lower()
+            text=' '.join([word for word in text.split()])
+            wordcloud = WordCloud(max_font_size=50, max_words=100, background_color="white").generate(text)
+            fig = plt.figure()
+            plt.imshow(wordcloud, interpolation="bilinear")
+            plt.axis("off")
+            plt.savefig('wc/'+add_str+'-cluster'+str(k)+'.png'.format(folder))
+            plt.close(fig)
+            
