@@ -47,6 +47,7 @@ lockfile==0.12.2
 lxml==4.6.2
 matplotlib==3.3.3
 msgpack==0.6.2
+news-please==1.5.13
 newspaper3k==0.2.8
 nltk==3.5
 numpy==1.19.4
@@ -70,6 +71,7 @@ pyparsing==2.4.6
 python-dateutil==2.8.1
 pytoml==0.1.21
 pytz==2020.5
+pywin32==300
 PyYAML==5.3.1
 queuelib==1.5.0
 readability-lxml==0.8.1
@@ -81,6 +83,7 @@ rsa==4.5
 s3transfer==0.3.3
 scikit-learn==0.24.0
 scipy==1.5.4
+Scrapy==2.4.1
 service-identity==18.1.0
 sgmllib3k==1.0.0
 six==1.14.0
@@ -90,8 +93,11 @@ tinysegmenter==0.3
 tldextract==3.1.0
 toml==0.10.2
 tqdm==4.54.1
+Twisted==20.3.0
 urllib3==1.25.8
 w3lib==1.22.0
+warcio==1.7.4
 webencodings==0.5.1
+wordcloud==1.8.1
 zope.event==4.5.0
 zope.interface==5.2.0
