@@ -186,7 +186,7 @@ class NewsClusterer:
         for k in range(0,c_count):
             s = result[result.cluster==k]
             text = s['tx'].str.cat(sep=' ')
-            text = self._tokenize(text)
+            text = text.lower()
             text =' '.join([word for word in text])
             wordcloud = WordCloud(max_font_size=50, max_words=100, background_color="white").generate(text)
             fig = plt.figure()
