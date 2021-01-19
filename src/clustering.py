@@ -184,10 +184,10 @@ class NewsClusterer:
         result={'cluster':labels,'tx':self.texts}
         result=pd.DataFrame(result)
         for k in range(0,c_count):
-            s = result[result.cluster==k]
-            text = s['tx'].str.cat(sep=' ')
-            text = text.lower()
-            text =' '.join([word for word in text])
+            s=result[result.cluster==k]
+            text=s['tx'].str.cat(sep=' ')
+            text=text.lower()
+            text=''.join([word for word in text.split()])
             wordcloud = WordCloud(max_font_size=50, max_words=100, background_color="white").generate(text)
             fig = plt.figure()
             plt.imshow(wordcloud, interpolation="bilinear")
