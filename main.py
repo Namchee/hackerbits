@@ -75,7 +75,7 @@ def cluster(args: Namespace) -> None:
     has_crawled = path.exists(target)
 
     if has_crawled is False:
-        raise ReferenceError('You must crawl the websites first!')
+        print('Reference data not found, crawling websites...')
 
     with open(target, 'r') as file:
         crawling_result = load(file)
