@@ -15,6 +15,16 @@ _Web crawler_ dan implementasi beberapa algoritma clustering sederhana pada webs
 
 > **CATATAN**: Setiap kali Anda menambahkan _dependency_ baru, mohon tambahkan pada `requirements.txt` menggunakan perintah `pip freeze > requirements.txt`
 
+## Penggunaan
+
+Terdapat 3 buah perintah yang tersedia pada program ini:
+
+1. `init`, mengunduh berbagai _dependency_ yang dibutuhkan. Anda **HARUS** melakukan langkah ini terlebih dahulu sebelum memulai menggunakan program ini.
+2. `crawl`, melakukan _crawling_ pada website HackerNews kemudian menyimpan hasilnya
+3. `cluster`, melakukan _clustering_ pada kumpulan berita. Apabila `crawl` belum dilakukan, maka program akan melakukan `crawl` terlebih dahulu
+
+Urutan eksekusi yang diharapkan adalah: `init` -> `crawl` -> `cluster`
+
 ## Kontributor
 
 1. [Stephen Hadi](https://github.com/stephenhadi) — 2017730016
