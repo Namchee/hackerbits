@@ -182,18 +182,21 @@ def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
         CrawlingResult: Crawler results, with timestamp
     """
 
-    urls = None
+    news_info = None
 
     if polite:
-        urls = _fetch_news_sync(limit)
+        news_info = _fetch_news_sync(limit)
     else:
-        urls = _fetch_news_async(limit)
+        news_info = _fetch_news_async(limit)
 
-    news = _get_news_metadata(urls[0])
+    news = _get_news_metadata(news_info[0])
+    last_page = news_info[1]
 
     while len(news) < limit:
-        last_page = _fetch_news_sync(30, urls[1])
-        news.extend(_get_news_metadata(last_page[0]))
+        old_news = _fetch_news_sync(30, last_page)
+        news.extend(_get_news_metadata(old_news[0]))
+        
+        last_page = old_news[1]
 
     return CrawlingResult(
         news=news[0:limit],
