@@ -135,7 +135,7 @@ class NewsClusterer:
         if cluster_count is None:
             cluster_count = self._get_optimal_cluster_count(linkage=linkage.value)
 
-        model = AgglomerativeClustering(n_clusters=cluster_count,linkage=linkage.value)
+        model = AgglomerativeClustering(n_clusters=cluster_count, affinity='euclidean', linkage=linkage.value)
         model.fit(self.tf_idf.toarray())
 
         return (model.labels_, cluster_count)
