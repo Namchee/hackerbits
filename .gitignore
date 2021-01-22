@@ -129,5 +129,4 @@ dmypy.json
 .pyre/
 
 .vscode
-crawling_result.json
 slides/node_modules
