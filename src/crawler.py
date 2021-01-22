@@ -191,7 +191,7 @@ def crawl_hn_for_news(limit = 200, polite = True) -> CrawlingResult:
 
     news = _get_news_metadata(urls[0])
 
-    if len(news) < limit:
+    while len(news) < limit:
         last_page = _fetch_news_sync(30, urls[1])
         news.extend(_get_news_metadata(last_page[0]))
 

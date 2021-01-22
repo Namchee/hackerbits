@@ -35,7 +35,7 @@ class NewsClusterer:
     """
     def __init__(self, news: List[News]) -> None:
         if len(news) < 15:
-            raise ValueError('Jumlah berita minimum yang dapat diproses adalah sebanyak 15 berita')
+            raise ValueError('The lowest possible news to be clustered is 15')
 
         self.tf_idf = self._tf_idf(news)
 
@@ -76,6 +76,7 @@ class NewsClusterer:
 
         texts = list(map(lambda news: news.contents, news))
         self.texts = texts
+
         return vectorizer.fit_transform(texts)    
 
     def _get_optimal_cluster_count(self,linkage=None) -> int:
@@ -86,6 +87,7 @@ class NewsClusterer:
         """
         K = range(2,15)
         silhoutte_metric_score = []
+
         if linkage is None:
             for k in K:
                 cluster = KMeans(n_clusters=k).fit(self.tf_idf)
@@ -132,6 +134,7 @@ class NewsClusterer:
         """
         if cluster_count is None:
             cluster_count = self._get_optimal_cluster_count(linkage=linkage.value)
+
         model = AgglomerativeClustering(n_clusters=cluster_count,linkage=linkage.value)
         model.fit(self.tf_idf.toarray())
 
@@ -181,18 +184,21 @@ class NewsClusterer:
             add_str (str): Additional string to differentiate file names
             folder (str): Target folder to generate word cloud picture files
         """
-        result={'cluster':labels,'tx':self.texts}
-        result=pd.DataFrame(result)
+        result = { 'cluster': labels, 'tx': self.texts }
+        result = pd.DataFrame(result)
+
         for k in range(0,c_count):
-            s=result[result.cluster==k]
-            text=s['tx'].str.cat(sep=' ')
-            text=text.lower()
-            text=''.join([word for word in text.split()])
-            wordcloud = WordCloud(max_font_size=50, max_words=100, background_color="white").generate(text)
+            s = result[result.cluster==k]
+            text = s['tx'].str.cat(sep=' ')
+            text = text.lower()
+            text = ''.join([word for word in text.split()])
+            wordcloud = WordCloud(max_font_size=50, max_words=100, background_color='white').generate(text)
             fig = plt.figure()
-            plt.imshow(wordcloud, interpolation="bilinear")
-            plt.axis("off")
-            plt.savefig('wc/'+add_str+'-cluster'+str(k)+'.png'.format(folder))
-            print("Generated "+'wc/'+add_str+'-cluster'+str(k)+'.png')
+            plt.imshow(wordcloud, interpolation='bilinear')
+            plt.axis('off')
+            plt.savefig('wc/' + add_str + '-cluster' + str(k) + '.png'.format(folder))
+
+            print('Generated ' + 'wc/' + add_str + '-cluster' + str(k) + '.png')
+
             plt.close(fig)
             
