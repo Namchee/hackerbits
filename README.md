@@ -17,13 +17,26 @@ _Web crawler_ dan implementasi beberapa algoritma clustering sederhana pada webs
 
 ## Penggunaan
 
-Terdapat 3 buah perintah yang tersedia pada program ini:
+`py main.py <command_name> <optional_arguments>`
 
-1. `init`, mengunduh berbagai _dependency_ yang dibutuhkan. Anda **HARUS** melakukan langkah ini terlebih dahulu sebelum memulai menggunakan program ini.
-2. `crawl`, melakukan _crawling_ pada website HackerNews kemudian menyimpan hasilnya
-3. `cluster`, melakukan _clustering_ pada kumpulan berita. Apabila `crawl` belum dilakukan, maka program akan melakukan `crawl` terlebih dahulu
+### Daftar Perintah Wajib
 
-Urutan eksekusi yang diharapkan adalah: `init` -> `crawl` -> `cluster`
+Nama | Kegunaaan
+---- | ---------
+`init` | Mengunduh berbagai _dependency_ yang dibutuhkan oleh program. Jalankan perintah ini sebelum menjalankan perintah `cluster`
+`crawl` | Melakukan _crawling_ pada website HackerNews, kemudian menyimpan hasilnya pada sebuah berkas JSON.
+`cluster` | Melakukan _clustering_ pada kumpulan artikel yang sudah di _crawl_ pada proses sebelumnya. Apabila data belum di*crawl*, maka program akan mengeksekusi perintah `crawl` terlebih dahulu.
+
+Urutan eksekusi perintah yang ideal adalah `init` → `crawl` → `cluster`
+
+### Daftar perintah opsional
+
+Nama | Nilai | Deskripsi | Nilai Anggapan | Perintah
+---- | ----- | --------- | -------------- | --------
+`-h`, `--help` | `None` | Memunculkan menu bantuan | - | -
+`-c <jumlah>`, `--count <jumlah>` | `int` | Menentukan jumlah artikel yang akan diambil pada perintah `crawl` | `200` | `crawl`
+`-f <nama>`, `--filename <nama>` | `str` | Menentukan nama berkas tempat penyimpanan artikel | `crawling_result` | [`crawl`, `cluster`]
+`-p`, `--polite` | `None` | Menentukan apakah proses _crawling_ dilakukan dengan menghormati nilai-nilai pada `robots.txt` | `False` | `crawl`
 
 ## Kontributor
 
